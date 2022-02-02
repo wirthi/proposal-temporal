@@ -640,9 +640,11 @@ export const ES = ObjectAssign({}, ES2020, {
     return ES.GetOption(options, 'overflow', ['constrain', 'balance'], 'constrain');
   },
   ToTemporalOverflow: (options) => {
+    if (options === undefined) return 'constrain';
     return ES.GetOption(options, 'overflow', ['constrain', 'reject'], 'constrain');
   },
   ToTemporalDisambiguation: (options) => {
+    if (options === undefined) return 'compatible';
     return ES.GetOption(options, 'disambiguation', ['compatible', 'earlier', 'later', 'reject'], 'compatible');
   },
   ToTemporalRoundingMode: (options, fallback) => {
@@ -659,6 +661,7 @@ export const ES = ObjectAssign({}, ES2020, {
     }
   },
   ToTemporalOffset: (options, fallback) => {
+    if (options === undefined) return fallback;
     return ES.GetOption(options, 'offset', ['prefer', 'use', 'ignore', 'reject'], fallback);
   },
   ToShowCalendarOption: (options) => {
@@ -1026,7 +1029,7 @@ export const ES = ObjectAssign({}, ES2020, {
     return ES.PrepareTemporalFields(bag, entries);
   },
 
-  ToTemporalDate: (item, options = ObjectCreate(null)) => {
+  ToTemporalDate: (item, options) => {
     if (ES.Type(item) === 'Object') {
       if (ES.IsTemporalDate(item)) return item;
       if (ES.IsTemporalZonedDateTime(item)) {
@@ -1073,7 +1076,7 @@ export const ES = ObjectAssign({}, ES2020, {
     ));
     return { year, month, day, hour, minute, second, millisecond, microsecond, nanosecond };
   },
-  ToTemporalDateTime: (item, options = ObjectCreate(null)) => {
+  ToTemporalDateTime: (item, options) => {
     let year, month, day, hour, minute, second, millisecond, microsecond, nanosecond, calendar;
     if (ES.Type(item) === 'Object') {
       if (ES.IsTemporalDateTime(item)) return item;
@@ -1172,7 +1175,7 @@ export const ES = ObjectAssign({}, ES2020, {
     const TemporalInstant = GetIntrinsic('%Temporal.Instant%');
     return new TemporalInstant(ns);
   },
-  ToTemporalMonthDay: (item, options = ObjectCreate(null)) => {
+  ToTemporalMonthDay: (item, options) => {
     if (ES.Type(item) === 'Object') {
       if (ES.IsTemporalMonthDay(item)) return item;
       let calendar, calendarAbsent;
@@ -1206,8 +1209,7 @@ export const ES = ObjectAssign({}, ES2020, {
       return ES.CreateTemporalMonthDay(month, day, calendar);
     }
     const result = ES.CreateTemporalMonthDay(month, day, calendar, referenceISOYear);
-    const canonicalOptions = ObjectCreate(null);
-    return ES.MonthDayFromFields(calendar, result, canonicalOptions);
+    return ES.MonthDayFromFields(calendar, result);
   },
   ToTemporalTime: (item, overflow = 'constrain') => {
     let hour, minute, second, millisecond, microsecond, nanosecond, calendar;
@@ -1257,7 +1259,7 @@ export const ES = ObjectAssign({}, ES2020, {
     const TemporalPlainTime = GetIntrinsic('%Temporal.PlainTime%');
     return new TemporalPlainTime(hour, minute, second, millisecond, microsecond, nanosecond);
   },
-  ToTemporalYearMonth: (item, options = ObjectCreate(null)) => {
+  ToTemporalYearMonth: (item, options) => {
     if (ES.Type(item) === 'Object') {
       if (ES.IsTemporalYearMonth(item)) return item;
       const calendar = ES.GetTemporalCalendarWithISODefault(item);
@@ -1276,8 +1278,7 @@ export const ES = ObjectAssign({}, ES2020, {
       return ES.CreateTemporalYearMonth(year, month, calendar);
     }
     const result = ES.CreateTemporalYearMonth(year, month, calendar, referenceISODay);
-    const canonicalOptions = ObjectCreate(null);
-    return ES.YearMonthFromFields(calendar, result, canonicalOptions);
+    return ES.YearMonthFromFields(calendar, result);
   },
   InterpretISODateTimeOffset: (
     year,
@@ -1352,7 +1353,7 @@ export const ES = ObjectAssign({}, ES2020, {
     const instant = ES.DisambiguatePossibleInstants(possibleInstants, timeZone, dt, disambiguation);
     return GetSlot(instant, EPOCHNANOSECONDS);
   },
-  ToTemporalZonedDateTime: (item, options = ObjectCreate(null)) => {
+  ToTemporalZonedDateTime: (item, options) => {
     let year, month, day, hour, minute, second, millisecond, microsecond, nanosecond, timeZone, offset, calendar;
     let matchMinute = false;
     let offsetBehaviour = 'option';
@@ -2756,8 +2757,7 @@ export const ES = ObjectAssign({}, ES2020, {
           const dateAdd = ES.GetMethod(calendar, 'dateAdd');
           const dateUntil = ES.GetMethod(calendar, 'dateUntil');
           while (MathAbs(years) > 0) {
-            const addOptions = ObjectCreate(null);
-            const newRelativeTo = ES.CalendarDateAdd(calendar, relativeTo, oneYear, addOptions, dateAdd);
+            const newRelativeTo = ES.CalendarDateAdd(calendar, relativeTo, oneYear, undefined, dateAdd);
             const untilOptions = ObjectCreate(null);
             untilOptions.largestUnit = 'month';
             const untilResult = ES.CalendarDateUntil(calendar, relativeTo, newRelativeTo, untilOptions, dateUntil);
@@ -2858,8 +2858,7 @@ export const ES = ObjectAssign({}, ES2020, {
 
         // balance months up to years
         const dateAdd = ES.GetMethod(calendar, 'dateAdd');
-        const addOptions = ObjectCreate(null);
-        newRelativeTo = ES.CalendarDateAdd(calendar, relativeTo, oneYear, addOptions, dateAdd);
+        newRelativeTo = ES.CalendarDateAdd(calendar, relativeTo, oneYear, undefined, dateAdd);
         const dateUntil = ES.GetMethod(calendar, 'dateUntil');
         const untilOptions = ObjectCreate(null);
         untilOptions.largestUnit = 'month';
@@ -2869,8 +2868,7 @@ export const ES = ObjectAssign({}, ES2020, {
           months -= oneYearMonths;
           years += sign;
           relativeTo = newRelativeTo;
-          const addOptions = ObjectCreate(null);
-          newRelativeTo = ES.CalendarDateAdd(calendar, relativeTo, oneYear, addOptions, dateAdd);
+          newRelativeTo = ES.CalendarDateAdd(calendar, relativeTo, oneYear, undefined, dateAdd);
           const untilOptions = ObjectCreate(null);
           untilOptions.largestUnit = 'month';
           untilResult = ES.CalendarDateUntil(calendar, relativeTo, newRelativeTo, untilOptions, dateUntil);
@@ -3208,7 +3206,7 @@ export const ES = ObjectAssign({}, ES2020, {
     ns2,
     calendar,
     largestUnit,
-    options = ObjectCreate(null)
+    options
   ) => {
     let { deltaDays, hours, minutes, seconds, milliseconds, microseconds, nanoseconds } = ES.DifferenceTime(
       h1,
@@ -3437,10 +3435,8 @@ export const ES = ObjectAssign({}, ES2020, {
       const dateDuration1 = new TemporalDuration(y1, mon1, w1, d1, 0, 0, 0, 0, 0, 0);
       const dateDuration2 = new TemporalDuration(y2, mon2, w2, d2, 0, 0, 0, 0, 0, 0);
       const dateAdd = ES.GetMethod(calendar, 'dateAdd');
-      const firstAddOptions = ObjectCreate(null);
-      const intermediate = ES.CalendarDateAdd(calendar, relativeTo, dateDuration1, firstAddOptions, dateAdd);
-      const secondAddOptions = ObjectCreate(null);
-      const end = ES.CalendarDateAdd(calendar, intermediate, dateDuration2, secondAddOptions, dateAdd);
+      const intermediate = ES.CalendarDateAdd(calendar, relativeTo, dateDuration1, undefined, dateAdd);
+      const end = ES.CalendarDateAdd(calendar, intermediate, dateDuration2, undefined, dateAdd);
 
       const dateLargestUnit = ES.LargerOfTwoTemporalUnits('day', largestUnit);
       const differenceOptions = ObjectCreate(null);
@@ -3765,8 +3761,7 @@ export const ES = ObjectAssign({}, ES2020, {
     ).days;
   },
   MoveRelativeDate: (calendar, relativeTo, duration) => {
-    const options = ObjectCreate(null);
-    const later = ES.CalendarDateAdd(calendar, relativeTo, duration, options);
+    const later = ES.CalendarDateAdd(calendar, relativeTo, duration);
     const days = ES.DaysUntil(relativeTo, later);
     return { relativeTo: later, days };
   },
@@ -3962,30 +3957,20 @@ export const ES = ObjectAssign({}, ES2020, {
         // relativeTo + years, relativeTo + { years, months, weeks })
         const yearsDuration = new TemporalDuration(years);
         const dateAdd = ES.GetMethod(calendar, 'dateAdd');
-        const firstAddOptions = ObjectCreate(null);
-        const yearsLater = ES.CalendarDateAdd(calendar, relativeTo, yearsDuration, firstAddOptions, dateAdd);
+        const yearsLater = ES.CalendarDateAdd(calendar, relativeTo, yearsDuration, undefined, dateAdd);
         const yearsMonthsWeeks = new TemporalDuration(years, months, weeks);
-        const secondAddOptions = ObjectCreate(null);
-        const yearsMonthsWeeksLater = ES.CalendarDateAdd(
-          calendar,
-          relativeTo,
-          yearsMonthsWeeks,
-          secondAddOptions,
-          dateAdd
-        );
+        const yearsMonthsWeeksLater = ES.CalendarDateAdd(calendar, relativeTo, yearsMonthsWeeks, undefined, dateAdd);
         const monthsWeeksInDays = ES.DaysUntil(yearsLater, yearsMonthsWeeksLater);
         relativeTo = yearsLater;
         days += monthsWeeksInDays;
 
-        const thirdAddOptions = ObjectCreate(null);
-        const daysLater = ES.CalendarDateAdd(calendar, relativeTo, { days }, thirdAddOptions, dateAdd);
+        const daysLater = ES.CalendarDateAdd(calendar, relativeTo, { days }, undefined, dateAdd);
         const untilOptions = ObjectCreate(null);
         untilOptions.largestUnit = 'year';
         const yearsPassed = ES.CalendarDateUntil(calendar, relativeTo, daysLater, untilOptions).years;
         years += yearsPassed;
         const oldRelativeTo = relativeTo;
-        const fourthAddOptions = ObjectCreate(null);
-        relativeTo = ES.CalendarDateAdd(calendar, relativeTo, { years: yearsPassed }, fourthAddOptions, dateAdd);
+        relativeTo = ES.CalendarDateAdd(calendar, relativeTo, { years: yearsPassed }, undefined, dateAdd);
         const daysPassed = ES.DaysUntil(oldRelativeTo, relativeTo);
         days -= daysPassed;
         const oneYear = new TemporalDuration(days < 0 ? -1 : 1);
@@ -4013,17 +3998,9 @@ export const ES = ObjectAssign({}, ES2020, {
         //   { years, months }, relativeTo + { years, months, weeks })
         const yearsMonths = new TemporalDuration(years, months);
         const dateAdd = ES.GetMethod(calendar, 'dateAdd');
-        const firstAddOptions = ObjectCreate(null);
-        const yearsMonthsLater = ES.CalendarDateAdd(calendar, relativeTo, yearsMonths, firstAddOptions, dateAdd);
+        const yearsMonthsLater = ES.CalendarDateAdd(calendar, relativeTo, yearsMonths, undefined, dateAdd);
         const yearsMonthsWeeks = new TemporalDuration(years, months, weeks);
-        const secondAddOptions = ObjectCreate(null);
-        const yearsMonthsWeeksLater = ES.CalendarDateAdd(
-          calendar,
-          relativeTo,
-          yearsMonthsWeeks,
-          secondAddOptions,
-          dateAdd
-        );
+        const yearsMonthsWeeksLater = ES.CalendarDateAdd(calendar, relativeTo, yearsMonthsWeeks, undefined, dateAdd);
         const weeksInDays = ES.DaysUntil(yearsMonthsLater, yearsMonthsWeeksLater);
         relativeTo = yearsMonthsLater;
         days += weeksInDays;
